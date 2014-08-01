@@ -1,9 +1,10 @@
 
 from collections import defaultdict
+from importlib import import_module
 import os.path
 
+from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.exceptions import ImproperlyConfigured
-from importlib import import_module
 
 from . import settings
 
@@ -30,7 +31,9 @@ def find_processor(name):
     try:
         config = settings.PROCESSORS[name]
     except KeyError:
-        raise ImproperlyConfigured('No configuration for asset processor %r' % name)
+        raise ImproperlyConfigured(
+            'No configuration for asset processor %r' % name
+        )
 
     mod, cls = config['class'].rsplit('.')
     module = import_module(mod)
@@ -112,6 +115,7 @@ class AssetRegistry(object):
 # Default processors
 #
 
+
 class ScriptProcessor(Processor):
     def process(self):
         assets = self.resolve()
@@ -119,4 +123,3 @@ class ScriptProcessor(Processor):
             '<script src="%s"></script>' % static(asset)
             for asset in assets
         ]
-

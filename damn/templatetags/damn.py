@@ -1,7 +1,8 @@
 
 from django import template
+from django.utils.safestring import mark_safe
 
-from ..processors import find_processor, AssetRegistry
+from ..processors import AssetRegistry
 
 
 register = template.Library()
