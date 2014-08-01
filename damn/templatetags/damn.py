@@ -1,8 +1,7 @@
 
 from django import template
 
-from damn.processors import find_processor
-from damn.utils import AssetRegistry, DepNode
+from ..processors import find_processor, AssetRegistry
 
 
 register = template.Library()
@@ -30,7 +29,7 @@ def assets(parser, token):
     return AssetsNode(nodelist)
 
 
-@register.simpletag(takes_context=True)
+@register.simple_tag(takes_context=True)
 def asset(context, name=None, alias=None, mode=None, *args):
     '''
     {% asset alias mode=? ... %}
