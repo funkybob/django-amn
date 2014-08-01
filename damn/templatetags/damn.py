@@ -18,7 +18,7 @@ class AssetsNode(template.Node):
         content = self.nodelist.render(context)
 
         # Now output out tags
-        extra_tags = '\n'.join(context.render_context['AMN'].items())
+        extra_tags = '\n'.join(context.render_context['AMN'].render(context))
 
         return mark_safe(extra_tags) + content
 

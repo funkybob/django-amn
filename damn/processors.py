@@ -108,9 +108,6 @@ class AssetRegistry(object):
             tags.extend(mode.render(context))
         return tags
 
-    def items(self):
-        return self.assets.items()
-
 #
 # Default processors
 #
