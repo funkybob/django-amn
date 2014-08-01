@@ -26,14 +26,12 @@ def find_processor(name):
 
 
 class DependencyNode(object):
-    def __init__(self, name, alias, mode, deps):
+    def __init__(self, name, alias, deps):
         self.name = name
         self.alias = alias
-        self.mode = mode
         self.deps = deps
 
-
-class AssetModel(list):
+class AssetMode(list):
     def __init__(self):
         self.aliases = {}
 
@@ -41,19 +39,33 @@ class AssetModel(list):
         # Update alias map
         if dep.alias:
             self.aliases[dep.alias] = dep.filename
+        # Resolve dep aliases?
         super(AssetModel, self).append(dep)
 
 class AssetRegistry(object):
-    mode_map = {
-    }
+    mode_map = settings.MODE_MAP
 
     def __init__(self):
-        self.assets = defaultdict(list)
+        self.assets = {}
 
     def add_asset(self, name, alias, mode, deps):
-        self.assets[mode].append(DependencyNode())
+        # Clearly, you must have a Mode if you have only an alias
+        if mode is None:
+            mode = self.mode_for_file(name)
+
+        modeset = self.assets[mode]
+
+        if name is None:
+            name = modeset[alias]
+
+        modeset.append(DependencyNode(name, alias, deps))
 
     def mode_for_file(self, filename):
         _, ext = os.path.splitext(filename)
         return self.mode_map.get(ext, ext)
 
+    def render(self, context):
+        tags = []
+        for mode in self.assets.items():
+            tags.extend(mode.render(context))
+        return tags
