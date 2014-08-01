@@ -1,8 +1,10 @@
 
 from unittest import TestCase
-from django.test.utils import TestTemplateLoader, override_with_test_loader
+from django.test.utils import setup_test_template_loader, override_settings
+from django.template import Context
+from django.template.loader import get_template
 
-TEMPLATES = TestTemplateLoader({
+TEMPLATES = {
     'basetag': '''{% load damn %}{% assets %}''',
     'test2': '''
 <!doctype html>{% load damn %}
@@ -15,18 +17,31 @@ TEMPLATES = TestTemplateLoader({
 </body>
 </html>
 ''',
-})
+}
+
+DAMN_PROCESSORS = {
+    'js': {
+        'class': 'damn.processors.ScriptProcessor',
+    },
+}
 
 class TagTests(TestCase):
 
-    @override_with_test_loader(TEMPLATES)
+    def setUp(self):
+        setup_test_template_loader(TEMPLATES)
+
+    @override_settings(
+        DAMN_PROCESSORS=DAMN_PROCESSORS,
+    )
     def test_simple(self):
         t = get_template('basetag')
         t.render()
 
-    @override_with_test_loader(TEMPLATES)
+    @override_settings(
+        DAMN_PROCESSORS=DAMN_PROCESSORS,
+    )
     def test_one(self):
         t = get_template('test2')
-        o = t.render({})
-        self.assertContains(o, '<script src="/static/js/jquery.js"></script>")
+        o = t.render(Context())
+        self.assertContains(o, '<script src="/static/js/jquery.js"></script>')
 
