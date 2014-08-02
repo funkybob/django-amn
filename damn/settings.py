@@ -1,6 +1,13 @@
 
 from django.conf import settings
 
+# Map of mode -> processor config
+#   {
+#       'js': {
+#           'processor': 'damn.processors.ScriptProcessor',
+#           ...
+#       },
+#   }
 PROCESSORS = getattr(settings, 'DAMN_PROCESSORS', {})
 
 # File extensin -> mode name
