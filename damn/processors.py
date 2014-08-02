@@ -128,3 +128,16 @@ class ScriptProcessor(Processor):
             '<script src="%s"></script>' % static(asset.filename)
             for asset in assets
         ]
+
+
+class LinkProcessor(Processor):
+    def render(self):
+        assets = self.resolve_deps()
+        return [
+            '<link rel="{}" type="{}" href"{}">'.format(
+                self.config.get('rel', 'stylesheet'),
+                self.config.get('type', 'text/css'),
+                asset.filename
+            )
+            for asset in assets
+        ]
