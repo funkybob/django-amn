@@ -8,52 +8,35 @@ from django.template.loader import get_template
 TEMPLATES = {
     'basetag': '''{% load damn %}{% assets %}''',
     'test_one': '''
-<!doctype html>{% load damn %}
-<html>
-<head>
+{% load damn %}
 {% assets %}
-</head>
-<body>
 {% asset 'js/jquery.js' %}
-</body>
-</html>
 ''',
     'test_two': '''
-<!doctype html>{% load damn %}
-<html>
-<head>
+{% load damn %}
 {% assets %}
-</head>
-<body>
 {% asset 'js/jquery.js' %}
 {% asset 'js/knockout.js' %}
-</body>
-</html>
 ''',
     'test_three': '''
-<!doctype html>{% load damn %}
-<html>
-<head>
+{% load damn %}
 {% assets %}
-</head>
-<body>
 {% asset 'js/knockout.js' 'js/jquery.js' %}
 {% asset 'js/jquery.js' %}
-</body>
-</html>
 ''',
     'test_mixed': '''
 {% load damn %}
-<head>
 {% assets %}
-</head>
-<body>
 {% asset 'js/jquery.js' %}
 {% asset 'css/bootstrap.css' %}
-</body>
-</html>
 ''',
 
+    'test_alias': '''
+{% load damn %}
+{% assets %}
+{% asset 'js/knockout.js' 'jquery' %}
+{% asset 'js/jquery.js' alias='jquery' %}
+''',
 }
 
 DAMN_PROCESSORS = {
@@ -109,9 +92,7 @@ class TagTests(TestCase):
     )
     def test_three(self):
         t = get_template('test_three')
-        print 'test three'
         o = t.render(Context())
-        print o
         self.assertTrue('<script src="/static/js/jquery.js"></script>' in o)
         self.assertTrue('<script src="/static/js/knockout.js"></script>' in o)
         self.assertTrue(
@@ -125,3 +106,19 @@ class TagTests(TestCase):
     def test_mixed(self):
         t = get_template('test_mixed')
         o = t.render(Context())
+        self.assertTrue('<script src="/static/js/jquery.js"></script>' in o)
+        self.assertTrue('<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css">' in o)
+
+    @override_settings(
+        DAMN_PROCESSORS=DAMN_PROCESSORS,
+        **DEFAULT_SETTINGS
+    )
+    def test_alias(self):
+        t = get_template('test_alias')
+        o = t.render(Context())
+
+        self.assertTrue('<script src="/static/js/jquery.js"></script>' in o)
+        self.assertTrue('<script src="/static/js/knockout.js"></script>' in o)
+        self.assertTrue(
+            o.index('src="/static/js/jquery.js"') < o.index('src="/static/js/knockout.js"')
+        )
