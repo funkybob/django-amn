@@ -37,6 +37,14 @@ TEMPLATES = {
 {% asset 'js/knockout.js' 'jquery' %}
 {% asset 'js/jquery.js' alias='jquery' %}
 ''',
+
+    'test_ordering': '''
+{% load damn %}
+{% assets %}
+{% asset 'js/jquery.js' %}
+{% asset 'css/bootstrap.css' %}
+''',
+
 }
 
 DEFAULT_SETTINGS = {
@@ -100,3 +108,9 @@ class TagTests(TestCase):
         self.assertTrue(
             o.index('src="/static/js/jquery.js"') < o.index('src="/static/js/knockout.js"')
         )
+
+    def test_ordering(self):
+        t = get_template('test_ordering')
+        o = t.render(Context())
+
+        self.assertTrue(o.index('bootstrap.css') < o.index('jquery.js'))

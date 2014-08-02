@@ -110,8 +110,17 @@ class AssetRegistry(object):
 
     def render(self, context):
         result = []
-        for mode in self.assets.values():  # must impose order
-            result.extend(mode.render())
+
+        # Enforce ordering defined in settings
+        modes = self.assets.keys()
+        for mode in settings.MODE_ORDER:
+            if mode in modes:
+                result.extend(self.assets[mode].render())
+                modes.remove(mode)
+
+        # Then handle what's leftover
+        for mode in modes:
+            result.extend(self.assets[mode].render())
         return result
 
     def __getitem__(self, key):
