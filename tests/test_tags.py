@@ -39,57 +39,43 @@ TEMPLATES = {
 ''',
 }
 
-DAMN_PROCESSORS = {
-    'js': {
-        'processor': 'damn.processors.ScriptProcessor',
-    },
-    'css': {
-        'processor': 'damn.processors.LinkProcessor',
-        'type': 'text/css',
-    },
-}
-
 DEFAULT_SETTINGS = {
     'STATIC_URL': '/static/',
+
+    'DAMN_PROCESSORS': {
+        'js': {
+            'processor': 'damn.processors.ScriptProcessor',
+        },
+        'css': {
+            'processor': 'damn.processors.LinkProcessor',
+            'type': 'text/css',
+        },
+    }
+
 }
 
+@override_settings(**DEFAULT_SETTINGS)
 class TagTests(TestCase):
 
     @classmethod
     def setUpClass(self):
         setup_test_template_loader(TEMPLATES)
 
-    @override_settings(
-        DAMN_PROCESSORS=DAMN_PROCESSORS,
-        **DEFAULT_SETTINGS
-    )
     def test_simple(self):
         t = get_template('basetag')
         t.render(Context())
 
-    @override_settings(
-        DAMN_PROCESSORS=DAMN_PROCESSORS,
-        **DEFAULT_SETTINGS
-    )
     def test_one(self):
         t = get_template('test_one')
         o = t.render(Context())
         self.assertTrue('<script src="/static/js/jquery.js"></script>' in o)
 
-    @override_settings(
-        DAMN_PROCESSORS=DAMN_PROCESSORS,
-        **DEFAULT_SETTINGS
-    )
     def test_two(self):
         t = get_template('test_two')
         o = t.render(Context())
         self.assertTrue('<script src="/static/js/jquery.js"></script>' in o)
         self.assertTrue('<script src="/static/js/knockout.js"></script>' in o)
 
-    @override_settings(
-        DAMN_PROCESSORS=DAMN_PROCESSORS,
-        **DEFAULT_SETTINGS
-    )
     def test_three(self):
         t = get_template('test_three')
         o = t.render(Context())
@@ -99,20 +85,12 @@ class TagTests(TestCase):
             o.index('src="/static/js/jquery.js"') < o.index('src="/static/js/knockout.js"')
         )
 
-    @override_settings(
-        DAMN_PROCESSORS=DAMN_PROCESSORS,
-        **DEFAULT_SETTINGS
-    )
     def test_mixed(self):
         t = get_template('test_mixed')
         o = t.render(Context())
         self.assertTrue('<script src="/static/js/jquery.js"></script>' in o)
         self.assertTrue('<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css">' in o)
 
-    @override_settings(
-        DAMN_PROCESSORS=DAMN_PROCESSORS,
-        **DEFAULT_SETTINGS
-    )
     def test_alias(self):
         t = get_template('test_alias')
         o = t.render(Context())
