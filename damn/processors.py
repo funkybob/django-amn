@@ -59,8 +59,8 @@ class DependencyNode(object):
     '''
     A container for filename + dependencies
     '''
-    def __init__(self, name, deps):
-        self.name = name
+    def __init__(self, filename, deps):
+        self.filename = filename
         self.deps = set(deps)
 
 
@@ -113,6 +113,6 @@ class ScriptProcessor(Processor):
     def render(self):
         assets = self.resolve_deps()
         return [
-            '<script src="%s"></script>' % static(asset)
+            '<script src="%s"></script>' % static(asset.filename)
             for asset in assets
         ]
