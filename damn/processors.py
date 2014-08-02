@@ -44,7 +44,8 @@ class Processor(object):
         # Keep going until there's nothing left
         # TODO: Find a deterministic approach
         while assets:
-            resolve(assets[assets.keys()[0]], resolved, pending)
+            # XXX This randomness is not good
+            resolve(assets[list(assets.keys())[0]], resolved, pending)
 
         return resolved
 
