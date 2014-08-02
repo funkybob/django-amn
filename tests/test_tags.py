@@ -8,41 +8,45 @@ from django.template.loader import get_template
 TEMPLATES = {
     'basetag': '''{% load damn %}{% assets %}''',
     'test_one': '''
-{% load damn %}
-{% assets %}
+{% load damn %}{% assets %}
 {% asset 'js/jquery.js' %}
 ''',
     'test_two': '''
-{% load damn %}
-{% assets %}
+{% load damn %}{% assets %}
 {% asset 'js/jquery.js' %}
 {% asset 'js/knockout.js' %}
 ''',
     'test_three': '''
-{% load damn %}
-{% assets %}
+{% load damn %}{% assets %}
 {% asset 'js/knockout.js' 'js/jquery.js' %}
 {% asset 'js/jquery.js' %}
 ''',
     'test_mixed': '''
-{% load damn %}
-{% assets %}
+{% load damn %}{% assets %}
 {% asset 'js/jquery.js' %}
 {% asset 'css/bootstrap.css' %}
 ''',
 
     'test_alias': '''
-{% load damn %}
-{% assets %}
+{% load damn %}{% assets %}
 {% asset 'js/knockout.js' 'jquery' %}
 {% asset 'js/jquery.js' alias='jquery' %}
 ''',
 
     'test_ordering': '''
-{% load damn %}
-{% assets %}
+{% load damn %}{% assets %}
 {% asset 'js/jquery.js' %}
 {% asset 'css/bootstrap.css' %}
+''',
+
+    'config_deps': '''
+{% load damn %}{% assets %}
+{% asset 'js/knockout.js' %}
+''',
+
+    'extend_deps': '''
+{% load damn %}{% assets %}
+{% asset 'js/bootstrap.js' 'knockout' %}
 ''',
 
 }
@@ -114,3 +118,44 @@ class TagTests(TestCase):
         o = t.render(Context())
 
         self.assertTrue(o.index('bootstrap.css') < o.index('jquery.js'))
+
+    @override_settings(
+        DAMN_PROCESSORS = {
+            'js': {
+                'processor': 'damn.processors.ScriptProcessor',
+                'deps': {
+                    'js/knockout.js': ['jquery'],
+                    'js/jquery.js': [],
+                },
+                'aliases': {
+                    'jquery': 'js/jquery.js',
+                },
+            },
+        }
+    )
+    def test_config_deps(self):
+        t = get_template('config_deps')
+        o = t.render(Context())
+
+        self.assertTrue('<script src="/static/js/jquery.js"></script>' in o)
+        self.assertTrue('<script src="/static/js/knockout.js"></script>' in o)
+
+
+    @override_settings(
+        DAMN_PROCESSORS = {
+            'js': {
+                'processor': 'damn.processors.ScriptProcessor',
+                'aliases': {
+                    'knockout': 'js/knockout.js',
+                    'jquery': 'js/jquery.js',
+                },
+                'deps': {
+                    'js/knockout.js': ['jquery'],
+                    'js/jquery.js': [],
+                },
+            },
+        }
+    )
+    def test_extend_deps(self):
+        t = get_template('extend_deps')
+        o = t.render(Context())
