@@ -24,9 +24,13 @@ class Processor(object):
         resolved = []
         pending = set()
 
+        # Get a copy
+        assets = dict(self.assets)
+
         def resolve(item, resolved, pending):
             pending.add(item)
-            for edge in item.deps:
+            for dep in item.deps:
+                edge = self.assets[dep]
                 if edge in resolved:
                     continue
                 if edge in pending:
@@ -34,8 +38,13 @@ class Processor(object):
                 resolve(edge, resolved, pending)
             pending.remove(item)
             resolved.append(item)
+            assets.pop(item.filename)
 
-        resolve(self.assets[self.assets.keys()[0]], resolved, pending)
+        # Keep going until there's nothing left
+        # TODO: Find a deterministic approach
+        while assets:
+            resolve(assets[assets.keys()[0]], resolved, pending)
+
         return resolved
 
     def add_asset(self, filename, alias, deps):
@@ -62,6 +71,9 @@ class DependencyNode(object):
     def __init__(self, filename, deps):
         self.filename = filename
         self.deps = set(deps)
+
+    def __repr__(self):
+        return u'{} [{}]'.format(self.filename, self.deps)
 
 
 class AssetRegistry(object):
