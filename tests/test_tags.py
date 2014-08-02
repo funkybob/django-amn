@@ -1,5 +1,7 @@
 
-from unittest import TestCase
+#from unittest import TestCase
+from django.test import TestCase
+
 from django.test.utils import setup_test_template_loader, override_settings
 from django.template import Context
 from django.template.loader import get_template
@@ -21,7 +23,7 @@ TEMPLATES = {
 
 DAMN_PROCESSORS = {
     'js': {
-        'class': 'damn.processors.ScriptProcessor',
+        'processor': 'damn.processors.ScriptProcessor',
     },
 }
 
@@ -32,6 +34,7 @@ class TagTests(TestCase):
 
     @override_settings(
         DAMN_PROCESSORS=DAMN_PROCESSORS,
+        STATIC_URL = '/',
     )
     def test_simple(self):
         t = get_template('basetag')
@@ -39,9 +42,10 @@ class TagTests(TestCase):
 
     @override_settings(
         DAMN_PROCESSORS=DAMN_PROCESSORS,
+        STATIC_URL = '/',
     )
     def test_one(self):
         t = get_template('test2')
         o = t.render(Context())
-        self.assertContains(o, '<script src="/static/js/jquery.js"></script>')
+        self.assertTrue('<script src="/static/js/jquery.js"></script>' in o)
 
