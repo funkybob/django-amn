@@ -89,6 +89,19 @@ Specifies an asset that is required for this page to function.
    {% asset name ...deps... [mode=?] [alias=?] %}
 
 
+Processors
+----------
+
+The processor takes the list of assets and renders the output to the page.
+
+It will be assigned the list of assets, and then have render() called upon it to return a list of elements to be entered into the page.
+
+Out of the box there are two processors:  ScriptProcessor, and LinkProcessor.
+
+ScriptProcessor will output each asset in a script tag.
+
+LinkProcessor will output each asset as a link tag.  You can optionally specify in the config the ``rel`` and ``type`` attributes to be used.
+
 Indices and tables
 ==================
 
