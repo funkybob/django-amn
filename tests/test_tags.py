@@ -42,12 +42,27 @@ TEMPLATES = {
 </body>
 </html>
 ''',
+    'test_mixed': '''
+{% load damn %}
+<head>
+{% assets %}
+</head>
+<body>
+{% asset 'js/jquery.js' %}
+{% asset 'css/bootstrap.css' %}
+</body>
+</html>
+''',
 
 }
 
 DAMN_PROCESSORS = {
     'js': {
         'processor': 'damn.processors.ScriptProcessor',
+    },
+    'css': {
+        'processor': 'damn.processors.LinkProcessor',
+        'type': 'text/css',
     },
 }
 
@@ -93,7 +108,8 @@ class TagTests(TestCase):
         **DEFAULT_SETTINGS
     )
     def test_three(self):
-        t = get_template('test_two')
+        t = get_template('test_three')
+        print 'test three'
         o = t.render(Context())
         print o
         self.assertTrue('<script src="/static/js/jquery.js"></script>' in o)
@@ -101,3 +117,11 @@ class TagTests(TestCase):
         self.assertTrue(
             o.index('src="/static/js/jquery.js"') < o.index('src="/static/js/knockout.js"')
         )
+
+    @override_settings(
+        DAMN_PROCESSORS=DAMN_PROCESSORS,
+        **DEFAULT_SETTINGS
+    )
+    def test_mixed(self):
+        t = get_template('test_mixed')
+        o = t.render(Context())
