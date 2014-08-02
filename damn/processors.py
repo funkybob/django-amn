@@ -9,9 +9,9 @@ from . import settings
 
 
 class Processor(object):
-    def __init__(self, config, default_aliases):
+    def __init__(self, config):
         self.config = config
-        self.aliases = dict(default_aliases)
+        self.aliases = dict(config.get('aliases', {}))
         self.assets = {}
 
     def process(self, items):
@@ -106,7 +106,7 @@ class AssetRegistry(object):
 
         mod, cls = config['processor'].rsplit('.', 1)
         module = import_module(mod)
-        return getattr(module, cls)(config, settings.DEPS.get(mode, {}))
+        return getattr(module, cls)(config)
 
     def render(self, context):
         result = []
