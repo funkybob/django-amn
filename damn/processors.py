@@ -1,5 +1,4 @@
 
-from collections import defaultdict
 from importlib import import_module
 import os.path
 
@@ -41,9 +40,8 @@ def find_processor(name):
 
 
 class DependencyNode(object):
-    def __init__(self, name, alias, deps):
+    def __init__(self, name, deps):
         self.name = name
-        self.alias = alias
         self.deps = set(deps)
 
     def _resolve(self, resolved, pending):
@@ -58,47 +56,48 @@ class DependencyNode(object):
         resolved.append(self)
 
 
-class AssetMode(list):
+class AssetMode(object):
     '''
     Holds all the DepNodes for a given mode
     '''
 
-    def __init__(self):
-        self.aliases = {}
+    def __init__(self, default_aliases):
+        self.aliases = dict(default_aliases)
+        self.assets = {}
 
-    def append(self, dep):
+    def add_asset(self, filename, alias, deps):
         # Update alias map
-        if dep.alias:
-            self.aliases[dep.alias] = dep.filename
+        if alias:
+            if filename is None:
+                filename = self.aliases[alias]
+            else:
+                self.aliases[alias] = filename
         # Do we have this name already?
         try:
-            orig = self.index(dep)
+            orig = self.assets[filename]
+        except KeyError:
+            self.asserts[filename] = DependencyNode(filename, alias, deps)
+        else:
             # Merge the deps
-            orig.deps.update(dep.deps)
-        except ValueError:
-            super(AssetMode, self).append(self)
-
-        # Resolve dep aliases?
-        super(AssetMode, self).append(dep)
+            orig.deps.update(deps)
 
 
 class AssetRegistry(object):
     mode_map = settings.MODE_MAP
 
     def __init__(self):
-        self.assets = defaultdict(AssetMode)
+        self.assets = {}
 
-    def add_asset(self, name, alias, mode, deps):
+    def add_asset(self, filename, alias, mode, deps):
         # Clearly, you must have a Mode if you have only an alias
         if mode is None:
-            mode = self.mode_for_file(name)
+            mode = self.mode_for_file(filename)
 
-        modeset = self.assets[mode]
-
-        if name is None:
-            name = modeset[alias]
-
-        modeset.append(DependencyNode(name, alias, deps))
+        try:
+            modeset = self.assets[mode]
+        except KeyError:
+            self.assets[mode] = modeset = AssetMode(settings.DEPS.get(mode, {}))
+        modeset.add_asset(filename, alias, deps)
 
     def mode_for_file(self, filename):
         _, ext = os.path.splitext(filename)
@@ -106,10 +105,13 @@ class AssetRegistry(object):
         return self.mode_map.get(mode, mode)
 
     def render(self, context):
-        tags = []
-        for mode in self.assets.items():
-            tags.extend(mode.render(context))
-        return tags
+        return [
+            mode.render()
+            for mode in self.assets.values()
+        ]
+
+    def __getitem__(self, key):
+        return self.assets[key]
 
 #
 # Default processors
