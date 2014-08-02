@@ -31,7 +31,7 @@ def assets(parser, token):
 
 
 @register.simple_tag(takes_context=True)
-def asset(context, filename=None, alias=None, mode=None, *args):
+def asset(context, filename=None, *args, **kwargs):
     '''
     {% asset alias mode=? ... %}
     {% asset file.js ...  %}
@@ -42,6 +42,8 @@ def asset(context, filename=None, alias=None, mode=None, *args):
     mode = asset mode [inferred from filename extension]
     args == dependencies [aliases or files]
     '''
+    alias = kwargs.get('alias')
+    mode = kwargs.get('mode')
     if alias is None and filename is None:
         raise template.TemplateSyntaxError(
             'asset tag requires at least one of name or alias'
