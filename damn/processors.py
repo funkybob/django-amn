@@ -9,9 +9,10 @@ from . import settings
 
 
 class Processor(object):
-    def __init__(self, name, config):
-        self.name = name
+    def __init__(self, config, default_aliases):
         self.config = config
+        self.aliases = dict(default_aliases)
+        self.assets = {}
 
     def process(self, items):
         raise NotImplementedError
@@ -22,48 +23,20 @@ class Processor(object):
         '''
         resolved = []
         pending = set()
-        self.items[0]._resolve(resolved, pending)
+
+        def resolve(item, resolved, pending):
+            pending.add(item)
+            for edge in item.deps:
+                if edge in resolved:
+                    continue
+                if edge in pending:
+                    raise Exception('Circular dependency: %s -> %s' % (item, edge))
+                resolve(edge, resolved, pending)
+            pending.remove(item)
+            resolved.append(item)
+
+        resolve(self.assets[self.assets.keys()[0]], resolved, pending)
         return resolved
-
-
-def find_processor(name):
-    try:
-        config = settings.PROCESSORS[name]
-    except KeyError:
-        raise ImproperlyConfigured(
-            'No configuration for asset processor %r' % name
-        )
-
-    mod, cls = config['class'].rsplit('.')
-    module = import_module(mod)
-    return getattr(module, cls)(name, config)
-
-
-class DependencyNode(object):
-    def __init__(self, name, deps):
-        self.name = name
-        self.deps = set(deps)
-
-    def _resolve(self, resolved, pending):
-        pending.add(self)
-        for edge in self.deps:
-            if edge in resolved:
-                continue
-            if edge in pending:
-                raise Exception('Circular dependency: %s -> %s' % (self, edge))
-            edge._resolve(resolved)
-        pending.remove(self)
-        resolved.append(self)
-
-
-class AssetMode(object):
-    '''
-    Holds all the DepNodes for a given mode
-    '''
-
-    def __init__(self, default_aliases):
-        self.aliases = dict(default_aliases)
-        self.assets = {}
 
     def add_asset(self, filename, alias, deps):
         # Update alias map
@@ -76,10 +49,19 @@ class AssetMode(object):
         try:
             orig = self.assets[filename]
         except KeyError:
-            self.asserts[filename] = DependencyNode(filename, alias, deps)
+            self.assets[filename] = DependencyNode(filename, deps)
         else:
             # Merge the deps
             orig.deps.update(deps)
+
+
+class DependencyNode(object):
+    '''
+    A container for filename + dependencies
+    '''
+    def __init__(self, name, deps):
+        self.name = name
+        self.deps = set(deps)
 
 
 class AssetRegistry(object):
@@ -96,7 +78,9 @@ class AssetRegistry(object):
         try:
             modeset = self.assets[mode]
         except KeyError:
-            self.assets[mode] = modeset = AssetMode(settings.DEPS.get(mode, {}))
+            # Find the Processor for this mode
+            modeset = self.processor_for_mode(mode)
+            self.assets[mode] = modeset
         modeset.add_asset(filename, alias, deps)
 
     def mode_for_file(self, filename):
@@ -104,11 +88,18 @@ class AssetRegistry(object):
         mode = ext.lstrip('.')
         return self.mode_map.get(mode, mode)
 
+    def processor_for_mode(self, mode):
+        config = settings.PROCESSORS[mode]
+
+        mod, cls = config['processor'].rsplit('.', 1)
+        module = import_module(mod)
+        return getattr(module, cls)(config, settings.DEPS.get(mode, {}))
+
     def render(self, context):
-        return [
-            mode.render()
-            for mode in self.assets.values()
-        ]
+        result = []
+        for mode in self.assets.values():  # must impose order
+            result.extend(mode.render())
+        return result
 
     def __getitem__(self, key):
         return self.assets[key]
@@ -119,8 +110,8 @@ class AssetRegistry(object):
 
 
 class ScriptProcessor(Processor):
-    def process(self):
-        assets = self.resolve()
+    def render(self):
+        assets = self.resolve_deps()
         return [
             '<script src="%s"></script>' % static(asset)
             for asset in assets
