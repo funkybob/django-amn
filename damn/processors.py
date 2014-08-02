@@ -30,6 +30,7 @@ class Processor(object):
         def resolve(item, resolved, pending):
             pending.add(item)
             for dep in item.deps:
+                dep = self.aliases.get(dep, dep)
                 edge = self.assets[dep]
                 if edge in resolved:
                     continue
@@ -134,10 +135,10 @@ class LinkProcessor(Processor):
     def render(self):
         assets = self.resolve_deps()
         return [
-            '<link rel="{}" type="{}" href"{}">'.format(
+            '<link rel="{}" type="{}" href="{}">'.format(
                 self.config.get('rel', 'stylesheet'),
                 self.config.get('type', 'text/css'),
-                asset.filename
+                static(asset.filename),
             )
             for asset in assets
         ]
