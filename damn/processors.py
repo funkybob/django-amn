@@ -113,7 +113,7 @@ class AssetRegistry(object):
         result = []
 
         # Enforce ordering defined in settings
-        modes = self.assets.keys()
+        modes = list(self.assets.keys())
         for mode in settings.MODE_ORDER:
             if mode in modes:
                 result.extend(self.assets[mode].render())
