@@ -18,7 +18,7 @@ Template:
         ...
         {% asset 'js/jquery.js' alias='jquery' %}
         # Depends on 'jquery'
-        {% asset 'js/bootstrap.js' alias='bootstrap' 'jquery' %}
+        {% asset 'js/bootstrap.js' 'jquery' alias='bootstrap' %}
         </body>
     </html>
 
