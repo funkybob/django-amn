@@ -41,7 +41,12 @@ Assets can have dependencies, so you won't forget to include what's needed.
 To make life easier, any asset can have an alias.  Aliases can be assigned in two ways:
 
 - In the asset tag using ``alias=``
-- In the Processor config.
+
+.. code-block:: django
+
+   {% asset 'js/jquery-1.11.min.js' alias='jquery' %}
+
+- In the Processor config. ( see below )
 
 Dependencies can refer to aliases, allowing library versions to be updated without breaking your templates.
 
@@ -50,57 +55,11 @@ Dependencies can refer to aliases, allowing library versions to be updated witho
    {% asset 'js/knockout.js' 'jquery' %}
 
 
-Settings
---------
+.. toctree::
 
-DAMN_PROCESSORS
-
-A map of Processor configs.
-
-Each value is a dict of config values.  The only required option is 'processor', which is an import path for the class to use to process this asset type.
-
-.. code-block:: python
-
-   DAMN_PROCESSORS = {
-       'js': {
-           'processor': 'damn.processors.ScriptProcessor',
-           'aliases': {
-               'jquery': 'js/vendor/jquery-1.11.min.js',
-           }
-       },
-   }
-
-Assets tag
-----------
-
-This tag simply marks where to output the asset tags.
-
-TODO::
-
-  Allow control of which modes are output...?
-
-Asset tag
----------
-
-Specifies an asset that is required for this page to function.
-
-.. code-block:: django
-
-   {% asset name ...deps... [mode=?] [alias=?] %}
-
-
-Processors
-----------
-
-The processor takes the list of assets and renders the output to the page.
-
-It will be assigned the list of assets, and then have render() called upon it to return a list of elements to be entered into the page.
-
-Out of the box there are two processors:  ScriptProcessor, and LinkProcessor.
-
-ScriptProcessor will output each asset in a script tag.
-
-LinkProcessor will output each asset as a link tag.  You can optionally specify in the config the ``rel`` and ``type`` attributes to be used.
+   settings
+   tags
+   processors
 
 Indices and tables
 ==================
