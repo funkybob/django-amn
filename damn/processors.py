@@ -49,12 +49,12 @@ class Processor(object):
         def resolve(filename, deps, resolved, pending):
             pending.add(filename)
             for dep in deps:
-                edge = assets[dep]
                 if dep in resolved:
                     continue
                 if dep in pending:
                     raise Exception('Circular dependency: %s -> %s' % (filename, edge))
-                resolve(dep, edge, resolved, pending)
+                edges = assets[dep]
+                resolve(dep, edges, resolved, pending)
             pending.remove(filename)
             resolved.append(filename)
             assets.pop(filename)
@@ -63,7 +63,7 @@ class Processor(object):
         # TODO: Find a deterministic approach
         while assets:
             # XXX This randomness is not good
-            key = list(assets.keys())[0]
+            key = sorted(assets.keys())[0]
             resolve(key, assets[key], resolved, pending)
 
         return resolved
