@@ -16,6 +16,9 @@ class Processor(object):
     def process(self, items):  # pragma: no cover
         raise NotImplementedError
 
+    def resolve_alias(self, name):
+        return self.aliases.get(name, name)
+
     def resolve_deps(self):
         '''
         Return our notes in depedency order
@@ -23,18 +26,30 @@ class Processor(object):
         resolved = []
         pending = set()
 
+        # Resolve our aliases
+        assets = {
+            self.resolve_alias(name): set(self.resolve_alias(dep) for dep in deps)
+            for name, deps in self.assets.items()
+        }
+
+        all_deps = set(assets.keys())
+        all_deps.update(*assets.values())
+
+        missing = all_deps.difference(assets.keys())
+        while missing:
+            for req in missing:
+                if req not in self.deps:
+                    raise Exception('Unable to satisfy: %r' % req)
+                new_deps = set(self.resolve_alias(dep) for dep in self.deps[req])
+                assets[req] = new_deps
+                all_deps.add(req)
+                all_deps.update(new_deps)
+            missing = all_deps.difference(assets.keys())
+
         def resolve(filename, deps, resolved, pending):
             pending.add(filename)
             for dep in deps:
-                # Resolve the alias
-                dep = self.aliases.get(dep, dep)
-                # Find the deps
-                if dep not in self.assets:
-                    if dep in self.deps:
-                        self.add_asset(dep, None, self.deps[dep])
-                    else:
-                        raise Exception('Unable to satisfy dep: %r' % dep)
-                edge = self.assets[dep]
+                edge = assets[dep]
                 if dep in resolved:
                     continue
                 if dep in pending:
@@ -42,39 +57,30 @@ class Processor(object):
                 resolve(dep, edge, resolved, pending)
             pending.remove(filename)
             resolved.append(filename)
-            self.assets.pop(filename)
+            assets.pop(filename)
 
         # Keep going until there's nothing left
         # TODO: Find a deterministic approach
-        while self.assets:
+        while assets:
             # XXX This randomness is not good
-            key = list(self.assets.keys())[0]
-            resolve(key, self.assets[key], resolved, pending)
+            key = list(assets.keys())[0]
+            resolve(key, assets[key], resolved, pending)
 
         return resolved
 
     def add_asset(self, filename, alias, deps):
-        deps = tuple(deps)
+        deps = set(deps)
         # Update alias map
         if alias:
-            if filename is None:
-                filename = self.aliases[alias]
-            else:
-                self.aliases[alias] = filename
-        else:
-            # Is it an alias:
-            filename = self.aliases.get(filename, filename)
+            self.aliases[alias] = filename
         # Are there configured deps?
-        deps = deps + tuple(self.config.get('deps', {}).get(filename, ()))
+        deps.update(self.config.get('deps', {}).get(filename, ()))
 
         # Do we have this name already?
-        try:
-            orig = self.assets[filename]
-        except KeyError:
-            self.assets[filename] = tuple(deps)
+        if filename in self.assets:
+            self.assets[filename] += deps
         else:
-            # Merge the deps
-            orig.deps.update(deps)
+            self.assets[filename] = deps
 
 
 class AssetRegistry(object):
