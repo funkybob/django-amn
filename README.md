@@ -3,6 +3,8 @@ django-amn
 
 Django Asset Management Nicely
 
+Read the docs at http://django-assets-managed-nicely.readthedocs.org/en/latest/
+
 Overview
 ========
 
