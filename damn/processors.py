@@ -4,7 +4,6 @@ import os.path
 
 from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
-from django.core.exceptions import ImproperlyConfigured
 
 
 class Processor(object):
@@ -30,7 +29,7 @@ class Processor(object):
                 # Resolve the alias
                 dep = self.aliases.get(dep, dep)
                 # Find the deps
-                if not dep in self.assets:
+                if dep not in self.assets:
                     if dep in self.deps:
                         self.add_asset(dep, None, self.deps[dep])
                     else:
