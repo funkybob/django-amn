@@ -13,10 +13,6 @@ class Processor(object):
         self.aliases = dict(config.get('aliases', {}))
         self.deps = config.get('deps', {})
         self.assets = {}
-        #for name, deps in config.get('deps', {}).items():
-        #    self.add_asset(name, None, deps)
-        #for asset in self.aliases.keys():
-        #    self.add_asset(asset, None, [])
 
     def process(self, items):  # pragma: no cover
         raise NotImplementedError
