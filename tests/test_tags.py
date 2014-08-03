@@ -2,7 +2,7 @@
 from django.test import TestCase
 
 from django.test.utils import setup_test_template_loader, override_settings
-from django.template import Context
+from django.template import Context, TemplateSyntaxError
 from django.template.loader import get_template
 
 TEMPLATES = {
@@ -47,6 +47,11 @@ TEMPLATES = {
     'extend_deps': '''
 {% load damn %}{% assets %}
 {% asset 'js/bootstrap.js' 'knockout' %}
+''',
+
+    'self_alias': '''
+{% load damn %}{% assets %}
+{% asset 'jquery' alias='jquery' %}
 ''',
 
 }
@@ -159,3 +164,9 @@ class TagTests(TestCase):
     def test_extend_deps(self):
         t = get_template('extend_deps')
         o = t.render(Context())
+
+    def test_self_alias(self):
+        t = get_template('self_alias')
+        with self.assertRaises(TemplateSyntaxError):
+            t.render(Context())
+
