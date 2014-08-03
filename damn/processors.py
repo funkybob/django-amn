@@ -131,8 +131,6 @@ class AssetRegistry(object):
             result.extend(self.assets[mode].render())
         return result
 
-    def __getitem__(self, key):
-        return self.assets[key]
 
 #
 # Default processors
