@@ -14,9 +14,6 @@ class Processor(object):
         self.deps = config.get('deps', {})
         self.assets = {}
 
-    def process(self, items):  # pragma: no cover
-        raise NotImplementedError
-
     def resolve_alias(self, name):
         return self.aliases.get(name, name)
 
