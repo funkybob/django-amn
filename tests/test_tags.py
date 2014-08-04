@@ -59,8 +59,13 @@ TEMPLATES = {
 {% asset 'js/jquery.js' %}
 {% asset 'css/bootstrap.css' %}
 {% asset 'js/jquery.js' %}
-'''
+''',
 
+    'single_jqplot': '''
+{% load damn %}{% assets %}
+{% asset 'js/jqplot.js' %}
+
+'''
 }
 
 DEFAULT_SETTINGS = {
@@ -77,6 +82,7 @@ DEFAULT_SETTINGS = {
     }
 
 }
+
 
 @override_settings(**DEFAULT_SETTINGS)
 class TagTests(TestCase):
@@ -132,7 +138,7 @@ class TagTests(TestCase):
         self.assertTrue(o.index('bootstrap.css') < o.index('jquery.js'))
 
     @override_settings(
-        DAMN_PROCESSORS = {
+        DAMN_PROCESSORS={
             'js': {
                 'processor': 'damn.processors.ScriptProcessor',
                 'deps': {
@@ -152,9 +158,8 @@ class TagTests(TestCase):
         self.assertTrue('<script src="/static/js/jquery.js"></script>' in o)
         self.assertTrue('<script src="/static/js/knockout.js"></script>' in o)
 
-
     @override_settings(
-        DAMN_PROCESSORS = {
+        DAMN_PROCESSORS={
             'js': {
                 'processor': 'damn.processors.ScriptProcessor',
                 'aliases': {
@@ -170,16 +175,36 @@ class TagTests(TestCase):
     )
     def test_extend_deps(self):
         t = get_template('extend_deps')
-        o = t.render(Context())
+        t.render(Context())
 
     def test_self_alias(self):
         t = get_template('self_alias')
         with self.assertRaises(TemplateSyntaxError):
             t.render(Context())
 
-
     def test_same_asset_only_once(self):
         t = get_template('same_asset_only_once')
         o = t.render(Context())
-        
-        self.assertTrue(o.count('<script src="/static/js/jquery.js"></script>')==1)
+        self.assertTrue(o.count('<script src="/static/js/jquery.js"></script>') == 1)
+
+    @override_settings(
+        DAMN_PROCESSORS={
+            'js': {
+                'processor': 'damn.processors.ScriptProcessor',
+                'aliases': {
+                    'jqplot': 'js/jqplot.js',
+                    'jquery': 'js/jquery.js',
+                },
+                'deps': {
+                    'jqplot': ['jquery'],
+                },
+            },
+        }
+    )
+    def test_position_of_depended_on_asset(self):
+        t = get_template('single_jqplot')
+        o = t.render(Context())
+        self.assertTrue('<script src="/static/js/jquery.js"></script>' in o)
+        self.assertTrue(
+            o.index('src="/static/js/jquery.js"') < o.index('src="/static/js/jqplot.js"')
+        )
