@@ -78,7 +78,7 @@ class Processor(object):
 
         # Do we have this name already?
         if filename in self.assets:
-            self.assets[filename] += deps
+            self.assets[filename].update(deps)
         else:
             self.assets[filename] = deps
 
