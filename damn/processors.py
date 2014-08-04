@@ -71,7 +71,7 @@ class Processor(object):
                 if dep in resolved:
                     continue
                 if dep in pending:
-                    raise Exception('Circular dependency: %s -> %s' % (filename, edge))
+                    raise Exception('Circular dependency: %s -> %s' % (filename, dep))
                 edges = assets[dep]
                 resolve(dep, edges, resolved, pending)
             pending.remove(filename)
