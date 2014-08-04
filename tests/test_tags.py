@@ -54,6 +54,13 @@ TEMPLATES = {
 {% asset 'jquery' alias='jquery' %}
 ''',
 
+    'same_asset_only_once': '''
+{% load damn %}{% assets %}
+{% asset 'js/jquery.js' %}
+{% asset 'css/bootstrap.css' %}
+{% asset 'js/jquery.js' %}
+'''
+
 }
 
 DEFAULT_SETTINGS = {
@@ -170,3 +177,9 @@ class TagTests(TestCase):
         with self.assertRaises(TemplateSyntaxError):
             t.render(Context())
 
+
+    def test_same_asset_only_once(self):
+        t = get_template('same_asset_only_once')
+        o = t.render(Context())
+        
+        self.assertTrue(o.count('<script src="/static/js/jquery.js"></script>')==1)
