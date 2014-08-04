@@ -26,11 +26,25 @@ class Processor(object):
         resolved = []
         pending = set()
 
-        # Resolve our aliases
+        # Resolve aliases for deps
+        deps = {
+            self.resolve_alias(name): set(self.resolve_alias(dep) for dep in depset)
+            for name, depset in self.deps.items()
+        }
+
+        # Resolve aliases for assets
         assets = {
             self.resolve_alias(name): set(self.resolve_alias(dep) for dep in deps)
             for name, deps in self.assets.items()
         }
+
+        # Inject configured deps to assets
+        for key in assets:
+            if key in deps:
+                assets[key].update(deps[key])
+                # Ensure that anything in Aliases has an implicit Deps entry
+                for item in deps[key]:
+                    deps.setdefault(item, set())
 
         all_deps = set(assets.keys())
         all_deps.update(*assets.values())
@@ -38,9 +52,9 @@ class Processor(object):
         missing = all_deps.difference(assets.keys())
         while missing:
             for req in missing:
-                if req not in self.deps:
+                if req not in deps:
                     raise Exception('Unable to satisfy: %r' % req)
-                new_deps = set(self.resolve_alias(dep) for dep in self.deps[req])
+                new_deps = deps[req]
                 assets[req] = new_deps
                 all_deps.add(req)
                 all_deps.update(new_deps)
@@ -73,8 +87,6 @@ class Processor(object):
         # Update alias map
         if alias:
             self.aliases[alias] = filename
-        # Are there configured deps?
-        deps.update(self.config.get('deps', {}).get(filename, ()))
 
         # Do we have this name already?
         if filename in self.assets:

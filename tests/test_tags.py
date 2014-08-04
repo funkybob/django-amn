@@ -201,7 +201,7 @@ class TagTests(TestCase):
             },
         }
     )
-    def test_position_of_depended_on_asset(self):
+    def test_aliased_config_deps(self):
         t = get_template('single_jqplot')
         o = t.render(Context())
         self.assertTrue('<script src="/static/js/jquery.js"></script>' in o)
