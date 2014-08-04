@@ -1,5 +1,6 @@
 
 from django.test import TestCase
+from django.core.exceptions import ImproperlyConfigured
 
 from django.test.utils import setup_test_template_loader, override_settings
 from django.template import Context, TemplateSyntaxError
@@ -64,8 +65,8 @@ TEMPLATES = {
     'single_jqplot': '''
 {% load damn %}{% assets %}
 {% asset 'js/jqplot.js' %}
-
 '''
+
 }
 
 DEFAULT_SETTINGS = {
@@ -208,3 +209,21 @@ class TagTests(TestCase):
         self.assertTrue(
             o.index('src="/static/js/jquery.js"') < o.index('src="/static/js/jqplot.js"')
         )
+
+    @override_settings(
+        DAMN_PROCESSORS={
+            'js': {
+                'processor': 'damn.processors.ScriptProcessor',
+                'aliases': {
+                    'jqplot': 'js/jqplot.js',
+                },
+                'deps': {
+                    'jqplot': ['foo', ],
+                },
+            },
+        }
+    )
+    def test_unknown_alias_reffered_in_deps(self):
+        t = get_template('single_jqplot')
+        with self.assertRaises(ImproperlyConfigured):
+            t.render(Context())
