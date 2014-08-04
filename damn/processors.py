@@ -4,6 +4,7 @@ import os.path
 
 from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.core.exceptions import ImproperlyConfigured
 
 
 class Processor(object):
@@ -59,6 +60,10 @@ class Processor(object):
                 all_deps.add(req)
                 all_deps.update(new_deps)
             missing = all_deps.difference(assets.keys())
+
+        for dep in all_deps:
+            if '.' not in dep:
+                raise ImproperlyConfigured("Dependency looks like an alias: %r" % dep)
 
         def resolve(filename, deps, resolved, pending):
             pending.add(filename)
