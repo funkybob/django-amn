@@ -56,6 +56,6 @@ def asset(context, filename=None, *args, **kwargs):
         raise template.TemplateSyntaxError(
             'Attempt to alias asset to itself.'
         )
-    context.render_context['AMN'].add_asset(filename=filename, alias=alias, mode=mode, deps=args)
+    context.render_context['AMN'].add_asset(filename, alias, mode, args)
 
     return ''

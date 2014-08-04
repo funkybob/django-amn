@@ -14,7 +14,7 @@ class Processor(object):
         self.deps = config.get('deps', {})
         self.assets = {}
 
-    def resolve_alias(self, name):
+    def alias_map(self, name):
         return self.aliases.get(name, name)
 
     def resolve_deps(self):
@@ -26,13 +26,13 @@ class Processor(object):
 
         # Resolve aliases for deps
         deps = {
-            self.resolve_alias(name): set(self.resolve_alias(dep) for dep in depset)
+            self.alias_map(name): {self.alias_map(dep) for dep in depset}
             for name, depset in self.deps.items()
         }
 
         # Resolve aliases for assets
         assets = {
-            self.resolve_alias(name): set(self.resolve_alias(dep) for dep in deps)
+            self.alias_map(name): {self.alias_map(dep) for dep in deps}
             for name, deps in self.assets.items()
         }
 
@@ -60,7 +60,9 @@ class Processor(object):
 
         for dep in all_deps:
             if '.' not in dep:
-                raise ImproperlyConfigured("Dependency looks like an alias: %r" % dep)
+                raise ImproperlyConfigured(
+                    "Dependency looks like an alias: %r" % dep
+                )
 
         def resolve(filename, deps, resolved, pending):
             pending.add(filename)
@@ -68,7 +70,9 @@ class Processor(object):
                 if dep in resolved:
                     continue
                 if dep in pending:
-                    raise Exception('Circular dependency: %s -> %s' % (filename, dep))
+                    raise Exception(
+                        'Circular dependency: %s -> %s' % (filename, dep)
+                    )
                 edges = assets[dep]
                 resolve(dep, edges, resolved, pending)
             pending.remove(filename)

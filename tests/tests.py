@@ -65,7 +65,23 @@ TEMPLATES = {
     'single_jqplot': '''
 {% load damn %}{% assets %}
 {% asset 'js/jqplot.js' %}
-'''
+''',
+
+    'circular_1': '''
+{% load damn %}{% assets %}
+{% asset 'js/first.js' 'js/second.js' %}
+{% asset 'js/second.js' 'js/first.js' %}
+''',
+
+    'syntax1': '''
+{% load damn %}{% assets %}
+{% asset mode='css' %}
+''',
+
+    'syntax2': '''
+{% load damn %}{% assets %}
+{% asset alias='wibble' %}
+''',
 
 }
 
@@ -226,4 +242,18 @@ class TagTests(TestCase):
     def test_unknown_alias_reffered_in_deps(self):
         t = get_template('single_jqplot')
         with self.assertRaises(ImproperlyConfigured):
+            t.render(Context())
+
+    def test_circular_dep(self):
+        t = get_template('circular_1')
+        with self.assertRaisesRegexp(Exception, 'Circular dependency:'):
+            t.render(Context())
+
+    def test_syntax(self):
+        t = get_template('syntax1')
+        with self.assertRaisesRegexp(TemplateSyntaxError, 'asset tag requires at least one of name or alias'):
+            t.render(Context())
+
+        t = get_template('syntax2')
+        with self.assertRaisesRegexp(TemplateSyntaxError, 'asset tag reqires mode when using an alias'):
             t.render(Context())
