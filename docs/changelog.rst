@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v0.2.1
+------
+
+Bugs Fixed
+----------
+
++ Fix forgotten var rename in exception
+
 v0.2.0
 ------
 
