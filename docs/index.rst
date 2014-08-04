@@ -60,6 +60,7 @@ Dependencies can refer to aliases, allowing library versions to be updated witho
    settings
    tags
    processors
+   changelog
 
 Indices and tables
 ==================
