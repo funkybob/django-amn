@@ -1,5 +1,6 @@
 
 from django.test import TestCase
+from django.conf import settings
 
 from django.test.utils import setup_test_template_loader, override_settings
 from django.template import Context, TemplateSyntaxError
@@ -59,8 +60,13 @@ TEMPLATES = {
 {% asset 'js/jquery.js' %}
 {% asset 'css/bootstrap.css' %}
 {% asset 'js/jquery.js' %}
-'''
+''',
 
+    'single_jqplot': '''
+{% load damn %}{% assets %}
+{% asset 'js/jqplot.js' %}
+
+'''
 }
 
 DEFAULT_SETTINGS = {
@@ -176,10 +182,32 @@ class TagTests(TestCase):
         t = get_template('self_alias')
         with self.assertRaises(TemplateSyntaxError):
             t.render(Context())
-
-
+    
     def test_same_asset_only_once(self):
         t = get_template('same_asset_only_once')
         o = t.render(Context())
         
         self.assertTrue(o.count('<script src="/static/js/jquery.js"></script>')==1)
+
+
+    @override_settings(
+        DAMN_PROCESSORS = {
+            'js': {
+                'processor': 'damn.processors.ScriptProcessor',
+                'aliases': {
+                    'jqplot': 'js/jqplot.js',
+                    'jquery': 'js/jquery.js',
+                },
+                'deps': {
+                    'jqplot': ['jquery'],
+                },
+            },
+        }
+    )
+    def test_position_of_depended_on_asset(self):
+        t = get_template('single_jqplot')
+        o = t.render(Context())
+        self.assertTrue('<script src="/static/js/jquery.js"></script>' in o)
+        self.assertTrue(
+            o.index('src="/static/js/jquery.js"') < o.index('src="/static/js/jqplot.js"')
+        )
