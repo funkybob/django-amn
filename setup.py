@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
     name='django-amn',
-    version='0.1.1',
+    version='0.2.0',
     description='Django asset dependency management.',
     author='Curtis Maloney',
     author_email='curtis@tinbrain.net',
