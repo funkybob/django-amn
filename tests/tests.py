@@ -83,6 +83,14 @@ TEMPLATES = {
 {% asset alias='wibble' %}
 ''',
 
+
+
+    'single_jqplot_with_mode': '''
+{% load damn %}{% assets %}
+{% asset 'jqplot' mode='js' %}
+
+''',
+
 }
 
 DEFAULT_SETTINGS = {
@@ -234,7 +242,7 @@ class TagTests(TestCase):
                     'jqplot': 'js/jqplot.js',
                 },
                 'deps': {
-                    'jqplot': ['foo', ],
+                    'jqplot': ['foo', 'aaa.js'],
                 },
             },
         }
@@ -256,4 +264,46 @@ class TagTests(TestCase):
 
         t = get_template('syntax2')
         with self.assertRaisesRegexp(TemplateSyntaxError, 'asset tag reqires mode when using an alias'):
+            t.render(Context())
+
+    @override_settings(
+        DAMN_PROCESSORS={
+            'js': {
+                'processor': 'damn.processors.ScriptProcessor',
+                'aliases': {
+                    'jqplot': 'js/jqplot.js',
+                    'jquery': 'js/jquery.js',
+                },
+                'deps': {
+                    'jqplot': ['jquery', ],
+                    'jquery': ['foo'],
+                },
+            },
+        }
+    )
+    def test_unable_to_satisfy_deps(self):
+        t = get_template('single_jqplot_with_mode')
+        # it should rather catch specific exception
+        with self.assertRaises(Exception):
+            t.render(Context())
+
+    @override_settings(
+        DAMN_PROCESSORS={
+            'js': {
+                'processor': 'damn.processors.ScriptProcessor',
+                'aliases': {
+                    'jqplot': 'js/jqplot.js',
+                    'jquery': 'js/jquery.js',
+                },
+                'deps': {
+                    'jqplot': ['jquery', ],
+                    'jquery': [''],
+                },
+            },
+        }
+    )
+    def test_empty_string_deps(self):
+        t = get_template('single_jqplot_with_mode')
+        # it should rather catch specific exception
+        with self.assertRaises(Exception):
             t.render(Context())
