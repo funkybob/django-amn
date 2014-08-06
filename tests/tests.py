@@ -283,8 +283,7 @@ class TagTests(TestCase):
     )
     def test_unable_to_satisfy_deps(self):
         t = get_template('single_jqplot_with_mode')
-        # it should rather catch specific exception
-        with self.assertRaises(Exception):
+        with self.assertRaisesRegexp(Exception, 'Unable to satisfy:'):
             t.render(Context())
 
     @override_settings(
@@ -304,6 +303,5 @@ class TagTests(TestCase):
     )
     def test_empty_string_deps(self):
         t = get_template('single_jqplot_with_mode')
-        # it should rather catch specific exception
-        with self.assertRaises(Exception):
+        with self.assertRaisesRegexp(Exception, "Unable to satisfy: ''"):
             t.render(Context())
