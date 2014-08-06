@@ -1,8 +1,9 @@
+=========
 Changelog
 =========
 
 v0.2.1
-------
+======
 
 Bugs Fixed
 ----------
@@ -10,7 +11,7 @@ Bugs Fixed
 + Fix forgotten var rename in exception
 
 v0.2.0
-------
+======
 
 New Features
 
@@ -20,6 +21,6 @@ New Features
 + Catch dependencies that appear to be missing aliases
 
 v0.1.1
-------
+======
 
 Initial Release

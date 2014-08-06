@@ -17,9 +17,23 @@ Processors, which it will in turn request to render them.
 
    .. py:attribute:: deps
 
-      A map of filenames to lists of other assets they depend on.
+      A map of filenames or aliases to lists of other assets they depend on.
 
       Any use of these assets will automatically add the listed dependencies.
+
+   .. py:method:: add_asset(filename, alias, deps)
+
+      Add an asset to this ``Processor``.  This is used by the ``{% asset %}``
+      tag.
+
+   .. py:method:: resolve_deps()
+
+      Return a list of filenames in an order which respects the declared
+      dependencies.  All aliasese will be resolved at this point.
+
+   .. py:method:: alias_map(name)
+
+      Unalias a given resource name.
 
 Out of the box there are two processors:  ScriptProcessor, and LinkProcessor.
 
@@ -31,7 +45,7 @@ filename through staticfiles.
 
 .. code-block:: html
 
-   <script src="{{ }}"></script>
+   <script src="{% static filename %}"></script>
 
 
 LinkProcessor
@@ -42,7 +56,7 @@ specify in the config the ``rel`` and ``type`` attributes to be used.
 
 .. code-block:: html
 
-   <link rel="{{ stylesheet }}" type="{{ test/css }}" href="{{ }}">
+   <link rel="{{ rel }}" type="{{ type }}" href="{% static filename %}">
 
 .. py:class:: LinkProcessor
 
