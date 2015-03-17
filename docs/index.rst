@@ -1,7 +1,7 @@
-.. Django Assess Managed Nicely documentation master file, created by
+.. Django Assets Managed Nicely documentation master file, created by
    sphinx-quickstart on Sat Aug  2 14:22:59 2014.
 
-Django Assess Managed Nicely
+Django Assets Managed Nicely
 ============================
 
 .. toctree::
