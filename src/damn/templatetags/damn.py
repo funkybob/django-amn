@@ -1,4 +1,3 @@
-
 from django import template
 from django.utils.safestring import mark_safe
 
@@ -9,17 +8,16 @@ register = template.Library()
 
 
 class AssetsNode(template.Node):
-
     def __init__(self, nodelist):
         self.nodelist = nodelist
 
     def render(self, context):
-        context.render_context['AMN'] = AssetRegistry()
+        context.render_context["AMN"] = AssetRegistry()
 
         content = self.nodelist.render(context)
 
         # Now output out tags
-        extra_tags = '\n'.join(context.render_context['AMN'].render(context))
+        extra_tags = "\n".join(context.render_context["AMN"].render(context))
 
         return mark_safe(extra_tags) + content
 
@@ -32,7 +30,7 @@ def assets(parser, token):
 
 @register.simple_tag(takes_context=True)
 def asset(context, filename=None, *args, **kwargs):
-    '''
+    """
     {% asset alias mode=? ... %}
     {% asset file.js ...  %}
     {% asset name depends depends... %}
@@ -41,21 +39,15 @@ def asset(context, filename=None, *args, **kwargs):
     file = static relative filename
     mode = asset mode [inferred from filename extension]
     args == dependencies [aliases or files]
-    '''
-    alias = kwargs.get('alias')
-    mode = kwargs.get('mode')
+    """
+    alias = kwargs.get("alias")
+    mode = kwargs.get("mode")
     if alias is None and filename is None:
-        raise template.TemplateSyntaxError(
-            'asset tag requires at least one of name or alias'
-        )
+        raise template.TemplateSyntaxError("asset tag requires at least one of name or alias")
     if filename is None and mode is None:
-        raise template.TemplateSyntaxError(
-            'asset tag reqires mode when using an alias'
-        )
+        raise template.TemplateSyntaxError("asset tag reqires mode when using an alias")
     if alias == filename:
-        raise template.TemplateSyntaxError(
-            'Attempt to alias asset to itself.'
-        )
-    context.render_context['AMN'].add_asset(filename, alias, mode, args)
+        raise template.TemplateSyntaxError("Attempt to alias asset to itself.")
+    context.render_context["AMN"].add_asset(filename, alias, mode, args)
 
-    return ''
+    return ""

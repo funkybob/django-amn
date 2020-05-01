@@ -1,40 +1,33 @@
-
 from importlib import import_module
 import os.path
 
 from django.conf import settings
-from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.templatetags.static import static
 from django.core.exceptions import ImproperlyConfigured
 
 
-class Processor(object):
+class Processor:
     def __init__(self, config):
         self.config = config
-        self.aliases = dict(config.get('aliases', {}))
-        self.deps = config.get('deps', {})
+        self.aliases = dict(config.get("aliases", {}))
+        self.deps = config.get("deps", {})
         self.assets = {}
 
     def alias_map(self, name):
         return self.aliases.get(name, name)
 
     def resolve_deps(self):
-        '''
+        """
         Return our notes in depedency order
-        '''
+        """
         resolved = []
         pending = set()
 
         # Resolve aliases for deps
-        deps = {
-            self.alias_map(name): {self.alias_map(dep) for dep in depset}
-            for name, depset in self.deps.items()
-        }
+        deps = {self.alias_map(name): {self.alias_map(dep) for dep in depset} for name, depset in self.deps.items()}
 
         # Resolve aliases for assets
-        assets = {
-            self.alias_map(name): {self.alias_map(dep) for dep in deps}
-            for name, deps in self.assets.items()
-        }
+        assets = {self.alias_map(name): {self.alias_map(dep) for dep in deps} for name, deps in self.assets.items()}
 
         # Inject configured deps to assets
         for key in assets:
@@ -51,7 +44,7 @@ class Processor(object):
         while missing:
             for req in missing:
                 if req not in deps:
-                    raise Exception('Unable to satisfy: %r' % req)
+                    raise Exception("Unable to satisfy: %r" % req)
                 new_deps = deps[req]
                 assets[req] = new_deps
                 all_deps.add(req)
@@ -59,10 +52,8 @@ class Processor(object):
             missing = all_deps.difference(assets.keys())
 
         for dep in all_deps:
-            if '.' not in dep:
-                raise ImproperlyConfigured(
-                    "Dependency looks like an alias: %r" % dep
-                )
+            if "." not in dep:
+                raise ImproperlyConfigured("Dependency looks like an alias: %r" % dep)
 
         def resolve(filename, deps, resolved, pending):
             pending.add(filename)
@@ -70,9 +61,7 @@ class Processor(object):
                 if dep in resolved:
                     continue
                 if dep in pending:
-                    raise Exception(
-                        'Circular dependency: %s -> %s' % (filename, dep)
-                    )
+                    raise Exception("Circular dependency: %s -> %s" % (filename, dep))
                 edges = assets[dep]
                 resolve(dep, edges, resolved, pending)
             pending.remove(filename)
@@ -101,12 +90,11 @@ class Processor(object):
             self.assets[filename] = deps
 
 
-class AssetRegistry(object):
-
+class AssetRegistry:
     def __init__(self):
-        self.mode_map = getattr(settings, 'DAMN_MODE_MAP', {})
-        self.mode_configs = getattr(settings, 'DAMN_PROCESSORS', {})
-        self.mode_order = getattr(settings, 'DAMN_MODE_ORDER', ['css', 'js'])
+        self.mode_map = getattr(settings, "DAMN_MODE_MAP", {})
+        self.mode_configs = getattr(settings, "DAMN_PROCESSORS", {})
+        self.mode_order = getattr(settings, "DAMN_MODE_ORDER", ["css", "js"])
         self.assets = {}
 
     def add_asset(self, filename, alias, mode, deps):
@@ -124,13 +112,13 @@ class AssetRegistry(object):
 
     def mode_for_file(self, filename):
         _, ext = os.path.splitext(filename)
-        mode = ext.lstrip('.')
+        mode = ext.lstrip(".")
         return self.mode_map.get(mode, mode)
 
     def processor_for_mode(self, mode):
         config = self.mode_configs[mode]
 
-        mod, cls = config['processor'].rsplit('.', 1)
+        mod, cls = config["processor"].rsplit(".", 1)
         module = import_module(mod)
         return getattr(module, cls)(config)
 
@@ -158,10 +146,7 @@ class AssetRegistry(object):
 class ScriptProcessor(Processor):
     def render(self):
         assets = self.resolve_deps()
-        return [
-            '<script src="%s"></script>' % static(asset)
-            for asset in assets
-        ]
+        return ['<script src="%s"></script>' % static(asset) for asset in assets]
 
 
 class LinkProcessor(Processor):
@@ -169,9 +154,7 @@ class LinkProcessor(Processor):
         assets = self.resolve_deps()
         return [
             '<link rel="{}" type="{}" href="{}">'.format(
-                self.config.get('rel', 'stylesheet'),
-                self.config.get('type', 'text/css'),
-                static(asset),
+                self.config.get("rel", "stylesheet"), self.config.get("type", "text/css"), static(asset),
             )
             for asset in assets
         ]
