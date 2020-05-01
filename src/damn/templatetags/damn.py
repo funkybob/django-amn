@@ -1,4 +1,5 @@
 from django import template
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.safestring import mark_safe
 
 from ..processors import AssetRegistry
@@ -48,6 +49,17 @@ def asset(context, filename=None, *args, **kwargs):
         raise template.TemplateSyntaxError("asset tag reqires mode when using an alias")
     if alias == filename:
         raise template.TemplateSyntaxError("Attempt to alias asset to itself.")
-    context.render_context["AMN"].add_asset(filename, alias, mode, args)
+
+    for ctx in reversed(context.render_context.dicts):
+        try:
+            registry = ctx['AMN']
+        except KeyError:
+            continue
+        else:
+            break
+    else:
+        raise ImproperlyConfigured("Must use {% assets %} tag before any {% asset %} tags.")
+
+    registry.add_asset(filename, alias, mode, args)
 
     return ""

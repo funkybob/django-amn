@@ -24,10 +24,22 @@ class Processor:
         pending = set()
 
         # Resolve aliases for deps
-        deps = {self.alias_map(name): {self.alias_map(dep) for dep in depset} for name, depset in self.deps.items()}
+        deps = {
+            self.alias_map(name): {
+                self.alias_map(dep)
+                for dep in depset
+            }
+            for name, depset in self.deps.items()
+        }
 
         # Resolve aliases for assets
-        assets = {self.alias_map(name): {self.alias_map(dep) for dep in deps} for name, deps in self.assets.items()}
+        assets = {
+            self.alias_map(name): {
+                self.alias_map(dep)
+                for dep in deps
+            }
+            for name, deps in self.assets.items()
+        }
 
         # Inject configured deps to assets
         for key in assets:
