@@ -1,11 +1,15 @@
 [tool.poetry]
-name = "damn"
+name = "django-damn"
 version = "0.3.0"
 description = "Django asset dependency management."
 authors = ["Curtis Maloney <curtis@tinbrain.net>"]
 license = "MIT"
 keywords = ["django", "assets"]
 homepage = "https://github.com/funkybob/django-amn"
+
+packages = [
+  { include = "damn", from = "src" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.6"
