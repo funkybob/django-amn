@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "damn"
-version = "0.2.1"
+version = "0.3.0"
 description = "Django asset dependency management."
 authors = ["Curtis Maloney <curtis@tinbrain.net>"]
 license = "MIT"
