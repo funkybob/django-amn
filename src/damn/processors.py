@@ -56,7 +56,7 @@ class Processor:
         while missing:
             for req in missing:
                 if req not in deps:
-                    raise Exception("Unable to satisfy: %r" % req)
+                    raise Exception(f"Unable to satisfy: {req!r}")
                 new_deps = deps[req]
                 assets[req] = new_deps
                 all_deps.add(req)
@@ -65,7 +65,7 @@ class Processor:
 
         for dep in all_deps:
             if "." not in dep:
-                raise ImproperlyConfigured("Dependency looks like an alias: %r" % dep)
+                raise ImproperlyConfigured(f"Dependency looks like an alias: {dep!r}")
 
         def resolve(filename, deps, resolved, pending):
             pending.add(filename)
@@ -73,7 +73,7 @@ class Processor:
                 if dep in resolved:
                     continue
                 if dep in pending:
-                    raise Exception("Circular dependency: %s -> %s" % (filename, dep))
+                    raise Exception(f"Circular dependency: {filename} -> {dep}")
                 edges = assets[dep]
                 resolve(dep, edges, resolved, pending)
             pending.remove(filename)
@@ -158,7 +158,7 @@ class AssetRegistry:
 class ScriptProcessor(Processor):
     def render(self):
         assets = self.resolve_deps()
-        return ['<script src="%s"></script>' % static(asset) for asset in assets]
+        return [f'<script src="{static(asset)}"></script>' for asset in assets]
 
 
 class LinkProcessor(Processor):
@@ -166,7 +166,9 @@ class LinkProcessor(Processor):
         assets = self.resolve_deps()
         return [
             '<link rel="{}" type="{}" href="{}">'.format(
-                self.config.get("rel", "stylesheet"), self.config.get("type", "text/css"), static(asset),
+                self.config.get("rel", "stylesheet"),
+                self.config.get("type", "text/css"),
+                static(asset),
             )
             for asset in assets
         ]
